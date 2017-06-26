@@ -1,1 +1,1 @@
-Import-Module -Name (Join-Path $PSScriptRoot "\Filer") -Verbose 
+Import-Module -Name (Join-Path $PSScriptRoot "\Filer") -Verbose -Force

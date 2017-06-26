@@ -17,7 +17,7 @@
 #>
 function New-RandomFiles
 {
-    [CmdletBinding(PositionalBinding=$true)]
+    [CmdletBinding(PositionalBinding=$true,SupportsShouldProcess=$True)]
     Param
     (
         # Path to create the files in.
@@ -41,12 +41,27 @@ function New-RandomFiles
     Process
     {
         # Come up with a list
-        $newFileName = ""
-        1..10 | ForEach { $newFileName = $newFileName + [char]((Get-Random -Minimum 65 -Maximum 91) + (Get-Random -Maximum 2)*32) }; 
-        $newFile = [PSCustomObject]@{ Filename = "$newFileName.txt"}
-        $FileList.Add($newFile) > NULL
+        For ($i=0; $i -lt $Amount; $i++) {
+            $newFileName = ""
+            1..8 | ForEach-Object { $newFileName = $newFileName + [char]((Get-Random -Minimum 65 -Maximum 91) + (Get-Random -Maximum 2)*32) }; 
+            $newFile = [PSCustomObject]@{ Filename = "$newFileName.txt"}
 
+            # Send "add" results to Out-Null so as not to add !@#% to the pipeline
+            $FileList.Add($newFile) | Out-Null
+        }
 		try {
+            if ($pscmdlet.ShouldProcess($computername))
+            {
+                #Write-Debug "Should Process"
+                $FileList | ForEach-Object {
+                    $fileName = Join-Path -Path $Path -ChildPath $_.Filename
+                    Write-Debug "Processing File: $fileName"
+                    New-Item $fileName -type file -force | Out-Null
+                } | Out-Null
+            }
+            else {
+                Write-Debug "Shouldn't process"
+            }
 		}
 		catch {
 		}
