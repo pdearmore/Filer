@@ -23,11 +23,14 @@ function New-RandomFiles
         # Path to create the files in.
         [Parameter(Mandatory=$false,
                    Position=0)]
-        $Path = '.',
+        $Path = '.'
 
         # Amount of files to create.
-        [Parameter(Mandatory=$false)]
+        , [Parameter(Mandatory=$false)]
         $Amount = 2
+
+        , [Parameter(Mandatory=$false)]
+        $FileNameLength = 8
     )
 
     Begin
@@ -43,28 +46,25 @@ function New-RandomFiles
         # Come up with a list
         For ($i=0; $i -lt $Amount; $i++) {
             $newFileName = ""
-            1..8 | ForEach-Object { $newFileName = $newFileName + [char]((Get-Random -Minimum 65 -Maximum 91) + (Get-Random -Maximum 2)*32) }; 
+            1..$FileNameLength | ForEach-Object { $newFileName = $newFileName + [char]((Get-Random -Minimum 65 -Maximum 91) + (Get-Random -Maximum 2)*32) }; 
             $newFile = [PSCustomObject]@{ Filename = "$newFileName.txt"}
 
             # Send "add" results to Out-Null so as not to add !@#% to the pipeline
             $FileList.Add($newFile) | Out-Null
         }
-		try {
-            if ($pscmdlet.ShouldProcess($computername))
-            {
-                #Write-Debug "Should Process"
-                $FileList | ForEach-Object {
-                    $fileName = Join-Path -Path $Path -ChildPath $_.Filename
-                    Write-Debug "Processing File: $fileName"
-                    New-Item $fileName -type file -force | Out-Null
-                } | Out-Null
-            }
-            else {
-                Write-Debug "Shouldn't process"
-            }
-		}
-		catch {
-		}
+
+        if ($pscmdlet.ShouldProcess($computername))
+        {
+            Write-Debug "Should Process"
+            $FileList | ForEach-Object {
+                $fileName = Join-Path -Path $Path -ChildPath $_.Filename
+                Write-Debug "Processing File: $fileName"
+                New-Item $fileName -type file -force | Out-Null
+            } | Out-Null
+        }
+        else {
+            Write-Debug "Shouldn't process"
+        }
     }
     End
     {
