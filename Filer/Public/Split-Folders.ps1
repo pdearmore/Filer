@@ -1,38 +1,67 @@
 
 # Split-Folders
 <#.Synopsis
-<!<SnippetShortDescription>!>
+Breaks large folders down into bite-sized sub folders.
 .DESCRIPTION
-<!<SnippetLongDescription>!>
+Breaks large folders full of many files down into small subfolders named by the letters of the files
+that have been broken down into them alphabetically.
 .EXAMPLE
-<!<SnippetExample>!>
-.EXAMPLE
-<!<SnippetAnotherExample>!>
+Split-Folders
+Works on all files in the current directory.  Splits them out into their own subfolders. 
 #>
 function Split-Folders
 {
-    [CmdletBinding()]
-    param
+    [CmdletBinding(PositionalBinding=$true,SupportsShouldProcess=$True)]
+    Param
     (
-        # <!<SnippetParam1Help>!>
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true,Position=0)]
-        $parameter1,
+        # Path to create the files in.
+        [Parameter(Mandatory=$false,
+                   Position=0)]
+        $Path = '.'
 
-        # <!<SnippetParam2Help>!>
-        [int]$parameter2)
+        # Amount of files to try to put in each folder.
+        , [Parameter(Mandatory=$false)]
+        $Amount = 50
+    )
 
-        Begin
-        {
-          
+    Begin
+    {
+        if (-not (Test-Path $path)) {
+            Throw "Path $Path not found!"
+        }
+        
+        $folderList = [System.Collections.ArrayList]@()
+    }
+
+    Process
+    {
+        $folderList = New-Object System.Collections.ArrayList
+        $fileNameCharIndex = 0
+        $testFileCount = 0
+        $fileList = Get-ChildItem -Path $Path -File
+
+        for ($i = 0; $i -lt $fileList.Lenth; $i++) {
+            for ($j = 0; $j -lt $Amount; $j++) {
+                # Bad logic -- rewrite this!!
+            } 
         }
 
-        Process
+        if ($pscmdlet.ShouldProcess($computername))
         {
-          
+            Write-Debug "Should Process"
+            $folderList | ForEach-Object {
+                #$fileName = Join-Path -Path $Path -ChildPath $_.Filename
+                #Write-Debug "Processing File: $fileName"
+                #New-Item $fileName -type file -force | Out-Null
+            } | Out-Null
         }
-
-        End
-        {
-
+        else {
+            Write-Debug "Shouldn't process"
         }
+    }
+
+    End
+    {
+
+    }
 }
