@@ -40,12 +40,34 @@ function Split-Folders
         $testFileCount = 0
         $fileList = Get-ChildItem -Path $Path -File
 
-        for ($i = 0; $i -lt $fileList.Lenth; $i++) {
-            for ($j = 0; $j -lt $Amount; $j++) {
-                # Bad logic -- rewrite this!!
-            } 
+        $filesInFolder = $null
+        for ($i = 0; $i -lt $fileList.Length; $i++) {
+            if ($filesInFolder -eq $null)
+            {
+                $filesInFolder = New-Object -TypeName PSObject
+                $filesInFolder | Add-Member -MemberType NoteProperty -Name FileList -Value (New-Object System.Collections.Arraylist)
+                $filesInFolder | Add-Member -MemberType NoteProperty -Name FolderName -Value ""
+                $folderList.Add($filesInFolder)
+            }
+            $filesInFolder.FileList.Add($fileList[$i])
+            if (($i+1) % $Amount -eq 0) {
+                $filesInFolder = $null
+            }
+        }
+        if ($filesInFolder -ne $null) {
+            $folderList.Add($filesInFolder)
         }
 
+        foreach ($folder in $folderList)
+        {
+            $folder.FolderName = $folder.FileList[0].Name + " - " + $folder.FileList[1].Name
+            Write-Verbose $folder.FolderName
+            foreach ($file in $folder)
+            {
+                #Write-Verbose "  $file"
+            }
+        }
+        
         if ($pscmdlet.ShouldProcess($computername))
         {
             Write-Debug "Should Process"
