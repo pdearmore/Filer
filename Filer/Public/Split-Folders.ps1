@@ -47,20 +47,21 @@ function Split-Folders
                 $filesInFolder = New-Object -TypeName PSObject
                 $filesInFolder | Add-Member -MemberType NoteProperty -Name FileList -Value (New-Object System.Collections.Arraylist)
                 $filesInFolder | Add-Member -MemberType NoteProperty -Name FolderName -Value ""
-                $folderList.Add($filesInFolder)
+                $folderList.Add($filesInFolder) | Out-Null
             }
-            $filesInFolder.FileList.Add($fileList[$i])
+            $filesInFolder.FileList.Add($fileList[$i]) | Out-Null
             if (($i+1) % $Amount -eq 0) {
+                # Set to null so that on the next pass a new object gets created and added to the list
                 $filesInFolder = $null
             }
-        }
-        if ($filesInFolder -ne $null) {
-            $folderList.Add($filesInFolder)
         }
 
         foreach ($folder in $folderList)
         {
-            $folder.FolderName = $folder.FileList[0].Name + " - " + $folder.FileList[1].Name
+            $firstFileName = $folder.FileList[0].Name.Split(".")[0]
+            $lastIndex = $folder.FileList.Count-1
+            $lastFileName = $folder.FileList[$lastIndex].Name.Split(".")[0]
+            $folder.FolderName = $firstFileName + "-" + $lastFileName
             Write-Verbose $folder.FolderName
             foreach ($file in $folder)
             {
@@ -71,11 +72,14 @@ function Split-Folders
         if ($pscmdlet.ShouldProcess($computername))
         {
             Write-Debug "Should Process"
-            $folderList | ForEach-Object {
-                #$fileName = Join-Path -Path $Path -ChildPath $_.Filename
-                #Write-Debug "Processing File: $fileName"
-                #New-Item $fileName -type file -force | Out-Null
-            } | Out-Null
+            foreach ($folder in $folderList)
+            {
+                New-Item -Path $Path -Name $folder.FolderName -ItemType "directory"
+                foreach ($file in $folder.FileList)
+                {
+                    Move-Item (Join-Path $Path $file.Name) (Join-Path $Path $folder.FolderName)
+                }
+            }
         }
         else {
             Write-Debug "Shouldn't process"
